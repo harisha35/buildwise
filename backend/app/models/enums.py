@@ -42,3 +42,23 @@ class StockMovementType(str, enum.Enum):
     stock_in = "in"
     stock_out = "out"
     wastage = "wastage"
+
+
+class QuotationStatus(str, enum.Enum):
+    draft = "draft"
+    sent = "sent"
+    accepted = "accepted"
+    rejected = "rejected"
+
+
+class MilestoneStatus(str, enum.Enum):
+    pending = "pending"
+    invoiced = "invoiced"
+    paid = "paid"
+
+
+class InvoiceStatus(str, enum.Enum):
+    unpaid = "unpaid"
+    partially_paid = "partially_paid"
+    paid = "paid"
+    overdue = "overdue"
