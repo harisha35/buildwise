@@ -5,6 +5,9 @@ export type AttendanceStatus = "present" | "absent" | "half_day";
 export type PaymentMode = "cash" | "bank_transfer" | "upi";
 export type PaymentStatus = "due" | "paid";
 export type StockMovementType = "in" | "out" | "wastage";
+export type QuotationStatus = "draft" | "sent" | "accepted" | "rejected";
+export type MilestoneStatus = "pending" | "invoiced" | "paid";
+export type InvoiceStatus = "unpaid" | "partially_paid" | "paid" | "overdue";
 
 export interface UserOut {
   id: number;
@@ -311,4 +314,166 @@ export interface MaterialExpenseOut {
   amount: number;
   date: string;
   note: string | null;
+}
+
+// ---------- Quotations ----------
+
+export interface LineItemInput {
+  description: string;
+  quantity: number;
+  rate: number;
+  amount?: number | null;
+}
+
+export interface LineItemOut {
+  id: number;
+  description: string;
+  quantity: number;
+  rate: number;
+  amount: number;
+  sort_order: number;
+}
+
+export interface QuotationCreate {
+  client_name: string;
+  project_description?: string | null;
+  project_ref_id?: number | null;
+  date: string;
+  validity_date?: string | null;
+  terms?: string | null;
+  line_items: LineItemInput[];
+}
+
+export interface QuotationUpdate extends Partial<QuotationCreate> {
+  status?: QuotationStatus;
+}
+
+export interface QuotationOut {
+  id: number;
+  client_name: string;
+  project_description: string | null;
+  project_ref_id: number | null;
+  total_amount: number;
+  date: string;
+  validity_date: string | null;
+  terms: string | null;
+  status: QuotationStatus;
+  created_at: string;
+  line_items: LineItemOut[];
+}
+
+// ---------- Milestones ----------
+
+export interface MilestoneCreate {
+  name: string;
+  description?: string | null;
+  amount: number;
+}
+
+export interface MilestoneUpdate {
+  name?: string;
+  description?: string | null;
+  amount?: number;
+  status?: MilestoneStatus;
+}
+
+export interface MilestoneOut {
+  id: number;
+  project_id: number;
+  name: string;
+  description: string | null;
+  amount: number;
+  status: MilestoneStatus;
+}
+
+// ---------- Invoices ----------
+
+export interface InvoiceCreate {
+  project_id: number;
+  client_name: string;
+  invoice_date: string;
+  due_date?: string | null;
+  milestone_ids: number[];
+  line_items: LineItemInput[];
+}
+
+export interface InvoiceUpdate {
+  client_name?: string;
+  due_date?: string | null;
+  line_items?: LineItemInput[];
+}
+
+export interface InvoicePaymentCreate {
+  amount: number;
+  date: string;
+  mode: PaymentMode;
+  note?: string | null;
+}
+
+export interface InvoicePaymentOut {
+  id: number;
+  invoice_id: number;
+  amount: number;
+  date: string;
+  mode: PaymentMode;
+  note: string | null;
+}
+
+export interface InvoiceOut {
+  id: number;
+  project_id: number;
+  client_name: string;
+  total_amount: number;
+  invoice_date: string;
+  due_date: string | null;
+  status: InvoiceStatus;
+  created_at: string;
+  line_items: LineItemOut[];
+  milestone_ids: number[];
+  payments: InvoicePaymentOut[];
+  amount_received: number;
+  amount_outstanding: number;
+}
+
+// ---------- Reports ----------
+
+export interface InvoiceReportRow {
+  invoice_id: number;
+  project_id: number;
+  project_name: string;
+  client_name: string;
+  invoice_date: string;
+  due_date: string | null;
+  total_amount: number;
+  amount_received: number;
+  amount_outstanding: number;
+  status: InvoiceStatus;
+}
+
+export interface InvoiceReportOut {
+  rows: InvoiceReportRow[];
+  total_invoiced: number;
+  total_received: number;
+  total_outstanding: number;
+  overdue_count: number;
+  unpaid_count: number;
+  partially_paid_count: number;
+  paid_count: number;
+}
+
+export interface ProfitabilityRow {
+  project_id: number;
+  project_name: string;
+  amount_received: number;
+  labour_cost: number;
+  material_cost: number;
+  profit: number;
+}
+
+export interface ProfitabilityReportOut {
+  rows: ProfitabilityRow[];
+  total_amount_received: number;
+  total_labour_cost: number;
+  total_material_cost: number;
+  total_profit: number;
 }

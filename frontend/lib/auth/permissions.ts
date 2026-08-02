@@ -5,6 +5,7 @@ import type { UserRole } from "@/lib/api/types";
 const OWNER_CONTRACTOR: UserRole[] = ["owner", "contractor"];
 const ALL_ROLES: UserRole[] = ["owner", "contractor", "supervisor", "accountant"];
 const FINANCE_AND_SUPERVISOR: UserRole[] = ["owner", "contractor", "accountant", "supervisor"];
+const FINANCE_ROLES: UserRole[] = ["owner", "contractor", "accountant"];
 
 export const CAPABILITIES = {
   "projects:write": OWNER_CONTRACTOR,
@@ -30,6 +31,14 @@ export const CAPABILITIES = {
   "stock:write": FINANCE_AND_SUPERVISOR,
   "material_expenses:read": FINANCE_AND_SUPERVISOR,
   "material_expenses:write": FINANCE_AND_SUPERVISOR,
+  "quotations:read": FINANCE_ROLES,
+  "quotations:write": FINANCE_ROLES,
+  "milestones:read": FINANCE_ROLES,
+  "milestones:write": FINANCE_ROLES,
+  "invoices:read": FINANCE_ROLES,
+  "invoices:write": FINANCE_ROLES,
+  "invoice_payments:write": FINANCE_ROLES,
+  "reports:read": ALL_ROLES,
 } as const;
 
 export type Capability = keyof typeof CAPABILITIES;

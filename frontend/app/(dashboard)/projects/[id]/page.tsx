@@ -8,13 +8,23 @@ import { useToast } from "@/components/providers/toast-provider";
 import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { FieldWrap, Input, Select, Textarea } from "@/components/ui/field";
+import { IconPlus } from "@/components/ui/icons";
+import { Modal } from "@/components/ui/modal";
 import { PageSpinner } from "@/components/ui/spinner";
 import { useAuth } from "@/lib/auth/context";
-import type { ContractType, ProjectStatus, ProjectUpdate } from "@/lib/api/types";
+import type { ContractType, MilestoneCreate, MilestoneOut, MilestoneStatus, ProjectStatus, ProjectUpdate } from "@/lib/api/types";
 import { useAssignSupervisor, useArchiveProject, useProject, useProjectTypes, useUpdateProject } from "@/lib/hooks/use-projects";
+import { useCreateMilestone, useProjectMilestones, useUpdateMilestone } from "@/lib/hooks/use-invoices";
 import { useUsers } from "@/lib/hooks/use-users";
 import { errorMessage, formatCurrency, formatDate, labelize } from "@/lib/utils";
+
+const MILESTONE_STATUS_TONE: Record<MilestoneStatus, BadgeTone> = {
+  pending: "neutral",
+  invoiced: "primary",
+  paid: "good",
+};
 
 const STATUS_TONE: Record<ProjectStatus, BadgeTone> = {
   planning: "purple",
@@ -204,6 +214,8 @@ export default function ProjectDetailPage() {
           {canWrite && <AssignSupervisorCard projectId={projectId} />}
         </div>
       </div>
+
+      {can("milestones:read") && <MilestonesCard projectId={projectId} />}
     </div>
   );
 }
@@ -252,5 +264,145 @@ function AssignSupervisorCard({ projectId }: { projectId: number }) {
         )}
       </CardBody>
     </Card>
+  );
+}
+
+function MilestonesCard({ projectId }: { projectId: number }) {
+  const { can } = useAuth();
+  const { data: milestones, isLoading } = useProjectMilestones(projectId);
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<MilestoneOut | null>(null);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Milestones</CardTitle>
+        {can("milestones:write") && (
+          <Button size="sm" onClick={() => setOpen(true)}>
+            <IconPlus className="h-4 w-4" /> Add Milestone
+          </Button>
+        )}
+      </CardHeader>
+      <CardBody>
+        {isLoading && <PageSpinner />}
+        {milestones && milestones.length === 0 && (
+          <EmptyState title="No milestones yet" description="Define billing stages for this project as work progresses." />
+        )}
+        {milestones && milestones.length > 0 && (
+          <ul className="flex flex-col gap-1.5">
+            {milestones.map((m) => (
+              <li key={m.id} className="flex items-center justify-between gap-3 rounded-field bg-bg-alt px-3 py-2 text-sm">
+                <div>
+                  <span className="font-semibold text-ink">{m.name}</span>
+                  {m.description && <span className="ml-2 text-xs text-ink-faint">{m.description}</span>}
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="tabular font-semibold text-ink">{formatCurrency(m.amount)}</span>
+                  <Badge tone={MILESTONE_STATUS_TONE[m.status]}>{labelize(m.status)}</Badge>
+                  {can("milestones:write") && (
+                    <button type="button" className="text-xs font-bold text-primary hover:underline" onClick={() => setEditing(m)}>
+                      Edit
+                    </button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardBody>
+
+      {(open || editing) && (
+        <MilestoneModal
+          projectId={projectId}
+          milestone={editing}
+          onClose={() => {
+            setOpen(false);
+            setEditing(null);
+          }}
+        />
+      )}
+    </Card>
+  );
+}
+
+function MilestoneModal({
+  projectId,
+  milestone,
+  onClose,
+}: {
+  projectId: number;
+  milestone: MilestoneOut | null;
+  onClose: () => void;
+}) {
+  const toast = useToast();
+  const createMilestone = useCreateMilestone(projectId);
+  const updateMilestone = useUpdateMilestone(projectId, milestone?.id ?? 0);
+  const pending = createMilestone.isPending || updateMilestone.isPending;
+
+  const [name, setName] = useState(milestone?.name ?? "");
+  const [description, setDescription] = useState(milestone?.description ?? "");
+  const [amount, setAmount] = useState(milestone ? String(milestone.amount) : "");
+  const [status, setStatus] = useState<MilestoneStatus>(milestone?.status ?? "pending");
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    const amountNum = Number(amount);
+    if (!name.trim() || !amountNum || amountNum <= 0) {
+      setError("Name and a positive amount are required.");
+      return;
+    }
+    try {
+      if (milestone) {
+        await updateMilestone.mutateAsync({ name, description: description || null, amount: amountNum, status });
+        toast.success("Milestone updated.");
+      } else {
+        const payload: MilestoneCreate = { name, description: description || null, amount: amountNum };
+        await createMilestone.mutateAsync(payload);
+        toast.success("Milestone added.");
+      }
+      onClose();
+    } catch (err) {
+      setError(errorMessage(err));
+    }
+  }
+
+  return (
+    <Modal open onClose={onClose} title={milestone ? "Edit Milestone" : "New Milestone"} width="sm">
+      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+        <FieldWrap label="Name" htmlFor="ms-name" required>
+          <Input id="ms-name" required value={name} onChange={(e) => setName(e.target.value)} />
+        </FieldWrap>
+        <FieldWrap label="Description" htmlFor="ms-desc">
+          <Textarea id="ms-desc" value={description ?? ""} onChange={(e) => setDescription(e.target.value)} />
+        </FieldWrap>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <FieldWrap label="Amount (₹)" htmlFor="ms-amount" required>
+            <Input id="ms-amount" type="number" min={0} required value={amount} onChange={(e) => setAmount(e.target.value)} />
+          </FieldWrap>
+          {milestone && (
+            <FieldWrap label="Status" htmlFor="ms-status">
+              <Select id="ms-status" value={status} onChange={(e) => setStatus(e.target.value as MilestoneStatus)}>
+                <option value="pending">Pending</option>
+                <option value="invoiced">Invoiced</option>
+                <option value="paid">Paid</option>
+              </Select>
+            </FieldWrap>
+          )}
+        </div>
+
+        {error && <p className="rounded-field border border-orange/30 bg-orange-soft px-3 py-2 text-sm font-semibold text-orange">{error}</p>}
+
+        <div className="mt-1 flex justify-end gap-3">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" loading={pending}>
+            {milestone ? "Save Changes" : "Add Milestone"}
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 }
