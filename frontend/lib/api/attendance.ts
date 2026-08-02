@@ -1,5 +1,10 @@
 import { apiGet, apiPatch, apiPost } from "@/lib/api/client";
-import type { AttendanceEntryInput, AttendanceOut, AttendanceUpsertResult } from "@/lib/api/types";
+import type {
+  AttendanceAuditLogOut,
+  AttendanceEntryInput,
+  AttendanceOut,
+  AttendanceUpsertResult,
+} from "@/lib/api/types";
 
 export const attendanceApi = {
   list: (params: { project_id?: number; start_date?: string; end_date?: string }) => {
@@ -16,4 +21,5 @@ export const attendanceApi = {
     id: number,
     payload: { status?: string; ot_hours?: number; applicable_rate?: number; ot_rate?: number }
   ) => apiPatch<AttendanceOut>(`/attendance/${id}`, payload),
+  auditLog: (id: number) => apiGet<AttendanceAuditLogOut[]>(`/attendance/${id}/audit-log`),
 };

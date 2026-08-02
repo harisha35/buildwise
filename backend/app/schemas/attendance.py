@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -52,6 +52,7 @@ class AttendanceAuditLogOut(BaseModel):
     id: int
     attendance_id: int
     changed_by: int | None
+    changed_at: datetime
     field_name: str
     old_value: str | None
     new_value: str | None

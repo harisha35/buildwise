@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { AttendanceHistoryModal } from "@/components/attendance-history-modal";
 import { useToast } from "@/components/providers/toast-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { Card, CardBody } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input, Select } from "@/components/ui/field";
 import { IconSearch } from "@/components/ui/icons";
+import { Modal } from "@/components/ui/modal";
 import { PageSpinner } from "@/components/ui/spinner";
 import { useAuth } from "@/lib/auth/context";
 import type { AttendanceStatus } from "@/lib/api/types";
@@ -40,6 +42,8 @@ export default function AttendancePage() {
   const [date, setDate] = useState(todayISO());
   const [search, setSearch] = useState("");
   const [rows, setRows] = useState<Record<number, RowState>>({});
+  const [historyFor, setHistoryFor] = useState<{ id: number; name: string } | null>(null);
+  const [conflictWarnings, setConflictWarnings] = useState<string[] | null>(null);
   const toast = useToast();
 
   useEffect(() => {
@@ -92,13 +96,13 @@ export default function AttendancePage() {
         status: row.status,
         ot_hours: Number(row.ot_hours) || 0,
         applicable_rate: row.rate_override ? Number(row.rate_override) : null,
-        override_warning: true,
+        override_warning: false,
       };
     });
     try {
       const result = await bulkUpsert.mutateAsync({ project_id: Number(projectId), date, entries });
       toast.success(`Saved attendance for ${result.saved.length} worker${result.saved.length === 1 ? "" : "s"}.`);
-      result.warnings.forEach((w) => toast.info(w));
+      if (result.warnings.length > 0) setConflictWarnings(result.warnings);
     } catch (err) {
       toast.error(errorMessage(err));
     }
@@ -163,6 +167,7 @@ export default function AttendancePage() {
             const row = rows[worker.id];
             if (!row) return null;
             const style = STATUS_STYLE[row.status];
+            const record = existing?.find((a) => a.worker_id === worker.id);
             return (
               <Card key={worker.id} className="p-4">
                 <div className="flex flex-wrap items-center gap-3 sm:flex-nowrap">
@@ -171,6 +176,15 @@ export default function AttendancePage() {
                     <p className="text-xs text-ink-faint">
                       {worker.default_daily_rate ? formatCurrency(worker.default_daily_rate) + "/day" : "No default rate"}
                     </p>
+                    {record && (
+                      <button
+                        type="button"
+                        onClick={() => setHistoryFor({ id: record.id, name: worker.name })}
+                        className="mt-0.5 text-xs font-semibold text-primary hover:underline"
+                      >
+                        Edit history
+                      </button>
+                    )}
                   </div>
                   <button
                     type="button"
@@ -222,6 +236,34 @@ export default function AttendancePage() {
           </div>
         </div>
       )}
+
+      <AttendanceHistoryModal
+        attendanceId={historyFor?.id ?? null}
+        workerName={historyFor?.name ?? ""}
+        onClose={() => setHistoryFor(null)}
+      />
+
+      <Modal
+        open={conflictWarnings !== null}
+        onClose={() => setConflictWarnings(null)}
+        title="Double-booked workers"
+        width="sm"
+      >
+        <p className="text-sm text-ink-soft">
+          These workers are already marked present or half-day on another project for this date. They&rsquo;ve been
+          saved as entered — double-check this is intentional.
+        </p>
+        <ul className="mt-3 flex flex-col gap-2">
+          {conflictWarnings?.map((warning, idx) => (
+            <li key={idx} className="rounded-field border border-orange/30 bg-orange-soft px-3 py-2 text-sm font-semibold text-orange">
+              {warning}
+            </li>
+          ))}
+        </ul>
+        <Button className="mt-4 w-full" variant="outline" onClick={() => setConflictWarnings(null)}>
+          Got it
+        </Button>
+      </Modal>
     </div>
   );
 }

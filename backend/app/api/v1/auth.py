@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
+from app.core.email import send_email
 from app.core.rate_limit import rate_limit
 from app.core.security import (
     create_access_token,
@@ -90,8 +91,19 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
             )
         )
         db.commit()
-        # In v1 there's no email dispatch dependency yet (PRD §9.4); the reset
-        # token would be delivered via whatever channel is wired up later.
+
+        reset_link = f"{_settings.frontend_base_url}/reset-password?token={raw_token}"
+        send_email(
+            to=user.email,
+            subject="Reset your Buildwise password",
+            body=(
+                f"Hi {user.name},\n\n"
+                "We received a request to reset your Buildwise password. "
+                "This link expires in 1 hour:\n\n"
+                f"{reset_link}\n\n"
+                "If you didn't request this, you can ignore this email."
+            ),
+        )
 
 
 @router.post(
