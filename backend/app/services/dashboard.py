@@ -1,9 +1,10 @@
 from datetime import date
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.attendance import Attendance
-from app.models.enums import AttendanceStatus, PaymentStatus, ProjectStatus
+from app.models.enums import AttendanceStatus, InvoiceStatus, PaymentStatus, ProjectStatus
+from app.models.invoice import Invoice
 from app.models.payment import WorkerPayment
 from app.models.project import Project
 from app.schemas.dashboard import AttendanceSummary, DashboardSummary
@@ -41,10 +42,23 @@ def build_dashboard_summary(
     )
     due_payments = due_query.all()
 
+    overdue_query = db.query(Invoice).options(joinedload(Invoice.payments)).filter(
+        Invoice.status == InvoiceStatus.overdue
+    )
+    if project_ids is not None:
+        overdue_query = overdue_query.filter(Invoice.project_id.in_(project_ids or [-1]))
+    overdue_invoices = overdue_query.all()
+    overdue_total = sum(
+        float(invoice.total_amount) - sum(float(p.amount) for p in invoice.payments)
+        for invoice in overdue_invoices
+    )
+
     return DashboardSummary(
         active_projects_count=active_projects_count,
         todays_attendance=summary,
         payments_due_this_week_total=sum(float(p.gross_wage_due) for p in due_payments),
         payments_due_this_week_count=len(due_payments),
+        overdue_invoices_count=len(overdue_invoices),
+        overdue_invoices_total=overdue_total,
         material_spend_total=material_spend_total(db, project_ids),
     )

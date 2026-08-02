@@ -3,14 +3,21 @@ from datetime import date
 
 from sqlalchemy.orm import Session, joinedload
 
-from app.models.enums import InvoiceStatus, StockMovementType
+from app.models.attendance import Attendance
+from app.models.enums import AttendanceStatus, InvoiceStatus, PaymentStatus, StockMovementType
 from app.models.invoice import Invoice, InvoicePayment
-from app.models.material import MaterialExpense, MaterialStockMovement
+from app.models.material import Material, MaterialExpense, MaterialStockMovement
 from app.models.payment import WorkerPayment, WorkerPaymentProjectBreakdown
 from app.models.project import Project
 from app.schemas.report import (
+    AttendanceSummaryReportOut,
+    AttendanceSummaryRow,
     InvoiceReportOut,
     InvoiceReportRow,
+    MaterialExpenseReportOut,
+    MaterialExpenseRow,
+    PaymentDuesReportOut,
+    PaymentDuesRow,
     ProfitabilityReportOut,
     ProfitabilityRow,
 )
@@ -159,4 +166,177 @@ def build_profitability_report(
         total_labour_cost=sum(r.labour_cost for r in rows),
         total_material_cost=sum(r.material_cost for r in rows),
         total_profit=sum(r.profit for r in rows),
+    )
+
+
+def build_attendance_summary_report(
+    db: Session,
+    project_ids: list[int] | None,
+    start_date: date | None,
+    end_date: date | None,
+) -> AttendanceSummaryReportOut:
+    """FR-8.3 Attendance Summary: per worker/per project days present/absent/half-day/OT."""
+    query = db.query(Attendance).options(
+        joinedload(Attendance.worker), joinedload(Attendance.project)
+    )
+    query = _scope(query, Attendance.project_id, project_ids)
+    if start_date is not None:
+        query = query.filter(Attendance.date >= start_date)
+    if end_date is not None:
+        query = query.filter(Attendance.date <= end_date)
+
+    totals: dict[tuple[int, int], dict[str, float]] = defaultdict(
+        lambda: {"present": 0.0, "absent": 0.0, "half_day": 0.0, "ot_hours": 0.0}
+    )
+    names: dict[tuple[int, int], tuple[str, str]] = {}
+    for row in query.all():
+        key = (row.worker_id, row.project_id)
+        bucket = totals[key]
+        if row.status == AttendanceStatus.present:
+            bucket["present"] += 1
+        elif row.status == AttendanceStatus.absent:
+            bucket["absent"] += 1
+        elif row.status == AttendanceStatus.half_day:
+            bucket["half_day"] += 1
+        bucket["ot_hours"] += float(row.ot_hours)
+        names[key] = (row.worker.name, row.project.name)
+
+    rows = [
+        AttendanceSummaryRow(
+            worker_id=worker_id,
+            worker_name=names[(worker_id, project_id)][0],
+            project_id=project_id,
+            project_name=names[(worker_id, project_id)][1],
+            days_present=values["present"],
+            days_absent=values["absent"],
+            days_half_day=values["half_day"],
+            ot_hours=values["ot_hours"],
+        )
+        for (worker_id, project_id), values in totals.items()
+    ]
+    rows.sort(key=lambda r: (r.worker_name, r.project_name))
+
+    return AttendanceSummaryReportOut(
+        rows=rows,
+        total_days_present=sum(r.days_present for r in rows),
+        total_days_absent=sum(r.days_absent for r in rows),
+        total_days_half_day=sum(r.days_half_day for r in rows),
+        total_ot_hours=sum(r.ot_hours for r in rows),
+    )
+
+
+def build_payment_dues_report(
+    db: Session,
+    project_ids: list[int] | None,
+    start_date: date | None,
+    end_date: date | None,
+    status_filter: PaymentStatus | None = None,
+) -> PaymentDuesReportOut:
+    """FR-8.3 Payment Dues & History: worker-wise, filterable by date range and payment status."""
+    query = db.query(WorkerPayment).options(joinedload(WorkerPayment.worker))
+    if project_ids is not None:
+        scoped_payment_ids = (
+            db.query(WorkerPaymentProjectBreakdown.payment_id)
+            .filter(WorkerPaymentProjectBreakdown.project_id.in_(project_ids or [-1]))
+            .distinct()
+        )
+        query = query.filter(WorkerPayment.id.in_(scoped_payment_ids))
+    if start_date is not None:
+        query = query.filter(WorkerPayment.week_end >= start_date)
+    if end_date is not None:
+        query = query.filter(WorkerPayment.week_start <= end_date)
+    if status_filter is not None:
+        query = query.filter(WorkerPayment.status == status_filter)
+
+    payments = query.order_by(WorkerPayment.week_start.desc()).all()
+
+    rows = [
+        PaymentDuesRow(
+            payment_id=payment.id,
+            worker_id=payment.worker_id,
+            worker_name=payment.worker.name,
+            week_start=payment.week_start,
+            week_end=payment.week_end,
+            gross_wage_due=float(payment.gross_wage_due),
+            advance_deducted=float(payment.advance_deducted),
+            net_paid=float(payment.net_paid) if payment.net_paid is not None else None,
+            status=payment.status,
+            payment_mode=payment.payment_mode.value if payment.payment_mode else None,
+            paid_at=payment.paid_at.date() if payment.paid_at else None,
+        )
+        for payment in payments
+    ]
+
+    return PaymentDuesReportOut(
+        rows=rows,
+        total_gross_wage_due=sum(r.gross_wage_due for r in rows),
+        total_net_paid=sum(r.net_paid or 0.0 for r in rows),
+        due_count=sum(1 for r in rows if r.status == PaymentStatus.due),
+        paid_count=sum(1 for r in rows if r.status == PaymentStatus.paid),
+    )
+
+
+def build_material_expense_report(
+    db: Session,
+    project_ids: list[int] | None,
+    start_date: date | None,
+    end_date: date | None,
+) -> MaterialExpenseReportOut:
+    """FR-8.3 Material Expense Report: per project, per material/category."""
+    stock_query = db.query(MaterialStockMovement).filter(
+        MaterialStockMovement.type == StockMovementType.stock_in
+    )
+    stock_query = _scope(stock_query, MaterialStockMovement.project_id, project_ids)
+    expense_query = db.query(MaterialExpense)
+    expense_query = _scope(expense_query, MaterialExpense.project_id, project_ids)
+    if start_date is not None:
+        stock_query = stock_query.filter(MaterialStockMovement.date >= start_date)
+        expense_query = expense_query.filter(MaterialExpense.date >= start_date)
+    if end_date is not None:
+        stock_query = stock_query.filter(MaterialStockMovement.date <= end_date)
+        expense_query = expense_query.filter(MaterialExpense.date <= end_date)
+
+    stock_by_key: dict[tuple[int, int | None], float] = defaultdict(float)
+    for movement in stock_query.all():
+        stock_by_key[(movement.project_id, movement.material_id)] += float(movement.total_cost or 0)
+
+    expense_by_key: dict[tuple[int, int | None], float] = defaultdict(float)
+    for expense in expense_query.all():
+        expense_by_key[(expense.project_id, expense.material_id)] += float(expense.amount)
+
+    keys = set(stock_by_key) | set(expense_by_key)
+    projects = {}
+    if keys:
+        project_ids_in_scope = {k[0] for k in keys}
+        projects = {p.id: p for p in db.query(Project).filter(Project.id.in_(project_ids_in_scope)).all()}
+    materials = {}
+    material_ids = {mid for _, mid in keys if mid is not None}
+    if material_ids:
+        materials = {m.id: m for m in db.query(Material).filter(Material.id.in_(material_ids)).all()}
+
+    rows = []
+    for project_id, material_id in keys:
+        project = projects.get(project_id)
+        material = materials.get(material_id) if material_id is not None else None
+        stock_cost = stock_by_key.get((project_id, material_id), 0.0)
+        expense_amount = expense_by_key.get((project_id, material_id), 0.0)
+        rows.append(
+            MaterialExpenseRow(
+                project_id=project_id,
+                project_name=project.name if project else "",
+                material_id=material_id,
+                material_name=material.name if material else "Unspecified",
+                category=material.category if material else None,
+                stock_in_cost=stock_cost,
+                direct_expense_amount=expense_amount,
+                total_cost=stock_cost + expense_amount,
+            )
+        )
+    rows.sort(key=lambda r: (r.project_name, r.material_name))
+
+    return MaterialExpenseReportOut(
+        rows=rows,
+        total_stock_in_cost=sum(r.stock_in_cost for r in rows),
+        total_direct_expense_amount=sum(r.direct_expense_amount for r in rows),
+        total_cost=sum(r.total_cost for r in rows),
     )
