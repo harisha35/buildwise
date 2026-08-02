@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/field";
 import { PageSpinner } from "@/components/ui/spinner";
 import { useCreateProjectType, useProjectTypes } from "@/lib/hooks/use-projects";
 import { useCreateWorkerType, useWorkerTypes } from "@/lib/hooks/use-workers";
+import { useCreateUnit, useUnits } from "@/lib/hooks/use-materials";
 import { errorMessage, formatCurrency } from "@/lib/utils";
 
 export default function ConfigSettingsPage() {
@@ -17,13 +18,64 @@ export default function ConfigSettingsPage() {
     <div className="flex flex-col gap-5">
       <div>
         <h2 className="text-2xl font-extrabold text-ink">Configuration</h2>
-        <p className="mt-1 text-sm text-ink-soft">Admin-configurable lists used across projects and workers.</p>
+        <p className="mt-1 text-sm text-ink-soft">Admin-configurable lists used across projects, workers, and materials.</p>
       </div>
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <ProjectTypesCard />
         <WorkerTypesCard />
+        <UnitsCard />
       </div>
     </div>
+  );
+}
+
+function UnitsCard() {
+  const { data: units, isLoading } = useUnits();
+  const createUnit = useCreateUnit();
+  const toast = useToast();
+  const [code, setCode] = useState("");
+  const [label, setLabel] = useState("");
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    if (!code.trim() || !label.trim()) return;
+    try {
+      await createUnit.mutateAsync({ code: code.trim(), label: label.trim() });
+      toast.success(`Added unit "${label.trim()}".`);
+      setCode("");
+      setLabel("");
+    } catch (err) {
+      toast.error(errorMessage(err));
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Units of Measure</CardTitle>
+      </CardHeader>
+      <CardBody className="flex flex-col gap-4">
+        <form className="grid grid-cols-1 gap-2 sm:grid-cols-3" onSubmit={handleAdd}>
+          <Input placeholder="Code, e.g. bag" value={code} onChange={(e) => setCode(e.target.value)} />
+          <Input placeholder="Label, e.g. Bags" value={label} onChange={(e) => setLabel(e.target.value)} />
+          <Button type="submit" size="sm" loading={createUnit.isPending}>
+            Add
+          </Button>
+        </form>
+        {isLoading && <PageSpinner />}
+        {units && units.length === 0 && <EmptyState title="No units yet" />}
+        {units && units.length > 0 && (
+          <ul className="flex flex-col gap-1.5">
+            {units.map((u) => (
+              <li key={u.id} className="flex items-center justify-between rounded-field bg-bg-alt px-3 py-2 text-sm">
+                <span className="font-semibold text-ink">{u.label}</span>
+                <span className="text-ink-faint">{u.code}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardBody>
+    </Card>
   );
 }
 
