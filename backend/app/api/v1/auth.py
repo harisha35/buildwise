@@ -3,6 +3,8 @@ from datetime import UTC, datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
+from app.core.rate_limit import rate_limit
 from app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -25,8 +27,13 @@ from app.schemas.auth import (
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+_settings = get_settings()
+_auth_rate_limit = rate_limit(
+    "auth", _settings.auth_rate_limit_attempts, _settings.auth_rate_limit_window_seconds
+)
 
-@router.post("/login", response_model=TokenResponse)
+
+@router.post("/login", response_model=TokenResponse, dependencies=[Depends(_auth_rate_limit)])
 def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
     user = db.query(User).filter(User.email == payload.email).first()
     if user is None or not user.is_active or not verify_password(payload.password, user.password_hash):
@@ -66,7 +73,11 @@ def logout() -> None:
     return None
 
 
-@router.post("/forgot-password", status_code=status.HTTP_204_NO_CONTENT)
+@router.post(
+    "/forgot-password",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(_auth_rate_limit)],
+)
 def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)) -> None:
     user = db.query(User).filter(User.email == payload.email).first()
     if user is not None:
@@ -83,7 +94,11 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
         # token would be delivered via whatever channel is wired up later.
 
 
-@router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT)
+@router.post(
+    "/reset-password",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(_auth_rate_limit)],
+)
 def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db)) -> None:
     candidates = (
         db.query(PasswordResetToken)
