@@ -141,6 +141,16 @@ export interface AttendanceUpsertResult {
   warnings: string[];
 }
 
+export interface AttendanceAuditLogOut {
+  id: number;
+  attendance_id: number;
+  changed_by: number | null;
+  changed_at: string;
+  field_name: string;
+  old_value: string | null;
+  new_value: string | null;
+}
+
 export interface WorkerAdvanceOut {
   id: number;
   worker_id: number;

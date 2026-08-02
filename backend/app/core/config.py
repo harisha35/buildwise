@@ -23,6 +23,15 @@ class Settings(BaseSettings):
     auth_rate_limit_attempts: int = 10
     auth_rate_limit_window_seconds: int = 60
 
+    frontend_base_url: str = "http://localhost:3000"
+
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    smtp_from: str = "no-reply@buildwise.local"
+    smtp_use_tls: bool = True
+
 
 @lru_cache
 def get_settings() -> Settings:

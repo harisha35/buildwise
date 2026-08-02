@@ -19,3 +19,11 @@ export function useBulkUpsertAttendance() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["attendance"] }),
   });
 }
+
+export function useAttendanceAuditLog(attendanceId: number | null) {
+  return useQuery({
+    queryKey: ["attendance-audit-log", attendanceId],
+    queryFn: () => attendanceApi.auditLog(attendanceId as number),
+    enabled: attendanceId !== null,
+  });
+}
