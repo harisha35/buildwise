@@ -7,6 +7,7 @@ from app.models.enums import AttendanceStatus, PaymentStatus, ProjectStatus
 from app.models.payment import WorkerPayment
 from app.models.project import Project
 from app.schemas.dashboard import AttendanceSummary, DashboardSummary
+from app.services.materials import material_spend_total
 from app.services.payments import week_bounds
 
 
@@ -45,4 +46,5 @@ def build_dashboard_summary(
         todays_attendance=summary,
         payments_due_this_week_total=sum(float(p.gross_wage_due) for p in due_payments),
         payments_due_this_week_count=len(due_payments),
+        material_spend_total=material_spend_total(db, project_ids),
     )

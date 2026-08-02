@@ -1,8 +1,13 @@
-# Buildwise Backend — Phase 1
+# Buildwise Backend — Phase 1 & 2
 
-FastAPI + SQLAlchemy 2.0 + Alembic + PostgreSQL implementation of Phase 1 (Core) from
-`docs/implementation-plan.md`: Auth, Users, Projects, Workers, Attendance, Weekly
-Payments & Ledger, Advances, and Dashboard v1.
+FastAPI + SQLAlchemy 2.0 + Alembic + PostgreSQL implementation of Phase 1 (Core) and
+Phase 2 (Materials & Suppliers) from `docs/implementation-plan.md`:
+
+- **Phase 1:** Auth, Users, Projects, Workers, Attendance, Weekly Payments & Ledger,
+  Advances, and Dashboard v1.
+- **Phase 2:** Units of Measure / Suppliers / Materials masters, per-project Stock
+  In/Out/Wastage movements, current-stock balances, direct material expenses, and a
+  material spend summary on the dashboard.
 
 ## Setup
 
@@ -40,6 +45,11 @@ attendance across two projects for a shared worker, generate the Sunday payment,
 it paid with proof, and see the worker ledger update — see
 `tests/test_e2e_phase1_flow.py`.
 
-Materials/Suppliers, Quotations/Milestones/Invoices, and full Reports are out of scope
-for this phase (Phase 2/3 per the implementation plan) and have no models, migrations,
-or routes yet.
+Implements PRD Phase 2 exit criteria: stock and spend numbers for a project are
+traceable and match manual reconciliation — record Stock In (with supplier/cost),
+Stock Out, and Wastage against a project, view the resulting current-stock balance per
+material, log a direct material expense, and see both feed into the dashboard's
+material spend total — see `tests/test_e2e_phase2_flow.py`.
+
+Quotations/Milestones/Invoices and full Reports are out of scope for this phase
+(Phase 3/4 per the implementation plan) and have no models, migrations, or routes yet.

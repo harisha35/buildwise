@@ -36,3 +36,9 @@ class PaymentMode(str, enum.Enum):
 class PaymentStatus(str, enum.Enum):
     due = "due"
     paid = "paid"
+
+
+class StockMovementType(str, enum.Enum):
+    stock_in = "in"
+    stock_out = "out"
+    wastage = "wastage"
