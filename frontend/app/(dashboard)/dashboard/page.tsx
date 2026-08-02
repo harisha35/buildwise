@@ -4,7 +4,15 @@ import Link from "next/link";
 
 import { Card, CardBody } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { IconAttendance, IconChevronRight, IconMaterials, IconPayments, IconProjects } from "@/components/ui/icons";
+import {
+  IconAttendance,
+  IconChevronRight,
+  IconInvoice,
+  IconMaterials,
+  IconPayments,
+  IconProjects,
+  IconQuotation,
+} from "@/components/ui/icons";
 import { PageSpinner } from "@/components/ui/spinner";
 import { StatCard } from "@/components/ui/stat-card";
 import { useAuth } from "@/lib/auth/context";
@@ -81,6 +89,12 @@ export default function DashboardPage() {
         )}
         {can("projects:read") && (
           <QuickLink href="/projects" title="View projects" description="See status across every active site." icon={<IconProjects className="h-5 w-5" />} />
+        )}
+        {can("quotations:read") && (
+          <QuickLink href="/quotations" title="Manage quotations" description="Pre-project client quotations with PDF export." icon={<IconQuotation className="h-5 w-5" />} />
+        )}
+        {can("invoices:read") && (
+          <QuickLink href="/invoices" title="Manage invoices" description="Milestone billing, partial payments, PDFs." icon={<IconInvoice className="h-5 w-5" />} />
         )}
       </div>
     </div>

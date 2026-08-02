@@ -149,6 +149,33 @@ export function IconMaterials(props: IconProps) {
   );
 }
 
+export function IconQuotation(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M6 3.5h9l3 3V20a.5.5 0 0 1-.5.5h-11A.5.5 0 0 1 6 20V4a.5.5 0 0 1 .5-.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M9 9.5h6M9 13h6M9 16.5h3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function IconInvoice(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="4.5" y="3.5" width="15" height="17" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M8 8h8M8 11.5h8M8 15h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function IconReports(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M4 20V10M11 20V4M18 20v-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M3 20h18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function IconAlert(props: IconProps) {
   return (
     <svg {...base(props)}>

@@ -7,9 +7,12 @@ import { Logo } from "@/components/layout/logo";
 import {
   IconAttendance,
   IconDashboard,
+  IconInvoice,
   IconMaterials,
   IconPayments,
   IconProjects,
+  IconQuotation,
+  IconReports,
   IconSettings,
   IconUsers,
   IconWorkers,
@@ -32,6 +35,9 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/attendance", label: "Attendance", icon: IconAttendance, capability: "attendance:read" },
   { href: "/payments", label: "Payments & Ledger", icon: IconPayments, capability: "payments:read" },
   { href: "/materials", label: "Materials & Stock", icon: IconMaterials, capability: "materials:read" },
+  { href: "/quotations", label: "Quotations", icon: IconQuotation, capability: "quotations:read" },
+  { href: "/invoices", label: "Invoices", icon: IconInvoice, capability: "invoices:read" },
+  { href: "/reports", label: "Reports", icon: IconReports, capability: "reports:read" },
 ];
 
 const SETTINGS_ITEMS: NavItem[] = [
@@ -81,7 +87,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         )}
       </nav>
       <div className="rounded-field border border-dark-line bg-dark-panel px-3 py-3 text-xs text-dark-text-soft">
-        Buildwise v1 &middot; Phase 2
+        Buildwise v1 &middot; Phase 3
       </div>
     </div>
   );

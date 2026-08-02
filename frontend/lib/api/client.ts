@@ -109,4 +109,38 @@ export async function apiUpload(file: File): Promise<{ url: string }> {
   return apiRequest<{ url: string }>("/uploads", { method: "POST", body: form });
 }
 
+/** Downloads a binary response (e.g. a PDF) and saves it under `filename` via a throwaway link click. */
+export async function apiDownloadFile(path: string, filename: string): Promise<void> {
+  const tokens = getTokens();
+  let response = await rawRequest(path, { method: "GET" }, tokens?.accessToken ?? null);
+
+  if (response.status === 401 && tokens) {
+    const newAccessToken = await refreshTokens();
+    if (newAccessToken) {
+      response = await rawRequest(path, { method: "GET" }, newAccessToken);
+    } else {
+      onSessionExpired?.();
+      throw new ApiError(401, "Session expired");
+    }
+  }
+
+  if (!response.ok) {
+    const body = await parseBody(response);
+    const detail =
+      body && typeof body === "object" && "detail" in body ? (body as { detail: unknown }).detail : body;
+    const message = typeof detail === "string" ? detail : `Request failed (${response.status})`;
+    throw new ApiError(response.status, message, detail);
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
 export { refreshTokens };

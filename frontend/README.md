@@ -1,12 +1,15 @@
-# Buildwise Frontend — Phase 1 & 2
+# Buildwise Frontend — Phase 1, 2 & 3
 
-Next.js 14 (App Router, TypeScript) console implementing Phase 1 (Core) and
-Phase 2 (Materials & Suppliers) from `docs/implementation-plan.md`: Login,
-Dashboard, Projects, Workers, Attendance, Weekly Payments & Mark-Paid,
-Advances, Worker Ledger, User/Config settings, Materials & Suppliers masters,
-Units of Measure config, per-project Stock In/Out/Wastage entry with current
-stock view, and direct Material Expense tracking — against the FastAPI
-backend in `../backend`.
+Next.js 14 (App Router, TypeScript) console implementing Phase 1 (Core),
+Phase 2 (Materials & Suppliers), and Phase 3 (Quotations, Milestones &
+Invoices) from `docs/implementation-plan.md`: Login, Dashboard, Projects,
+Workers, Attendance, Weekly Payments & Mark-Paid, Advances, Worker Ledger,
+User/Config settings, Materials & Suppliers masters, Units of Measure config,
+per-project Stock In/Out/Wastage entry with current stock view, direct
+Material Expense tracking, Quotations with line items and PDF export,
+per-project Milestones, milestone-based Invoices with partial client
+payments and PDF export, and the Invoice & Client Payment / Project
+Profitability reports — against the FastAPI backend in `../backend`.
 
 Visual design (colors, type, radius, shadows, buttons/cards) mirrors
 `../landing-page/index.html` so the marketing site and the app read as one product.
@@ -39,8 +42,14 @@ Requires the backend running (see `../backend/README.md`) with CORS allowing
   (`backend/app/core/permissions.py`) for UI-only gating; the API is the real gate
 - `components/ui/` — design-system primitives (Button, Card, Modal, Badge, fields…)
 - `components/layout/` — Sidebar, Topbar, AppShell
+- `components/line-items-editor.tsx` — shared add/remove/quantity×rate line-item
+  editor used by both the Quotation and Invoice forms
 
 ## Scope
 
-Quotations/Milestones/Invoices and full Reports have no backend routes yet
-(Phase 3/4) and are intentionally not built here.
+Full Reports polish (Attendance Summary, Payment Dues & History standalone
+views), CSV export, and the role-based dashboard pass are Phase 4 and
+intentionally not built here. PDF downloads (`lib/api/client.ts::apiDownloadFile`)
+fetch the authenticated binary response and save it via a throwaway anchor
+click, since the PDF routes require a Bearer token that a plain `<a href>`
+can't attach.
