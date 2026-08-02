@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card, CardBody } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
+  IconAlert,
   IconAttendance,
   IconChevronRight,
   IconInvoice,
@@ -40,7 +41,7 @@ export default function DashboardPage() {
       )}
 
       {data && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard
             label="Active Projects"
             value={String(data.active_projects_count)}
@@ -73,6 +74,13 @@ export default function DashboardPage() {
             hint="Stock-in cost + direct expenses"
             tone="orange"
             icon={<IconMaterials className="h-5 w-5" />}
+          />
+          <StatCard
+            label="Overdue Invoices"
+            value={String(data.overdue_invoices_count)}
+            hint={data.overdue_invoices_count > 0 ? formatCurrency(data.overdue_invoices_total) + " outstanding" : "All caught up"}
+            tone={data.overdue_invoices_count > 0 ? "orange" : "good"}
+            icon={<IconAlert className="h-5 w-5" />}
           />
         </div>
       )}

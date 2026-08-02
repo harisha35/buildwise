@@ -207,6 +207,8 @@ export interface DashboardSummary {
   todays_attendance: { present: number; absent: number; half_day: number };
   payments_due_this_week_total: number;
   payments_due_this_week_count: number;
+  overdue_invoices_count: number;
+  overdue_invoices_total: number;
   material_spend_total: number;
 }
 
@@ -476,4 +478,63 @@ export interface ProfitabilityReportOut {
   total_labour_cost: number;
   total_material_cost: number;
   total_profit: number;
+}
+
+export interface AttendanceSummaryRow {
+  worker_id: number;
+  worker_name: string;
+  project_id: number;
+  project_name: string;
+  days_present: number;
+  days_absent: number;
+  days_half_day: number;
+  ot_hours: number;
+}
+
+export interface AttendanceSummaryReportOut {
+  rows: AttendanceSummaryRow[];
+  total_days_present: number;
+  total_days_absent: number;
+  total_days_half_day: number;
+  total_ot_hours: number;
+}
+
+export interface PaymentDuesRow {
+  payment_id: number;
+  worker_id: number;
+  worker_name: string;
+  week_start: string;
+  week_end: string;
+  gross_wage_due: number;
+  advance_deducted: number;
+  net_paid: number | null;
+  status: PaymentStatus;
+  payment_mode: PaymentMode | null;
+  paid_at: string | null;
+}
+
+export interface PaymentDuesReportOut {
+  rows: PaymentDuesRow[];
+  total_gross_wage_due: number;
+  total_net_paid: number;
+  due_count: number;
+  paid_count: number;
+}
+
+export interface MaterialExpenseRow {
+  project_id: number;
+  project_name: string;
+  material_id: number | null;
+  material_name: string;
+  category: string | null;
+  stock_in_cost: number;
+  direct_expense_amount: number;
+  total_cost: number;
+}
+
+export interface MaterialExpenseReportOut {
+  rows: MaterialExpenseRow[];
+  total_stock_in_cost: number;
+  total_direct_expense_amount: number;
+  total_cost: number;
 }
