@@ -1,9 +1,12 @@
-# Buildwise Frontend — Phase 1
+# Buildwise Frontend — Phase 1 & 2
 
-Next.js 14 (App Router, TypeScript) console implementing Phase 1 (Core) from
-`docs/implementation-plan.md`: Login, Dashboard, Projects, Workers, Attendance,
-Weekly Payments & Mark-Paid, Advances, Worker Ledger, and User/Config settings —
-against the FastAPI backend in `../backend`.
+Next.js 14 (App Router, TypeScript) console implementing Phase 1 (Core) and
+Phase 2 (Materials & Suppliers) from `docs/implementation-plan.md`: Login,
+Dashboard, Projects, Workers, Attendance, Weekly Payments & Mark-Paid,
+Advances, Worker Ledger, User/Config settings, Materials & Suppliers masters,
+Units of Measure config, per-project Stock In/Out/Wastage entry with current
+stock view, and direct Material Expense tracking — against the FastAPI
+backend in `../backend`.
 
 Visual design (colors, type, radius, shadows, buttons/cards) mirrors
 `../landing-page/index.html` so the marketing site and the app read as one product.
@@ -39,5 +42,5 @@ Requires the backend running (see `../backend/README.md`) with CORS allowing
 
 ## Scope
 
-Materials/Suppliers, Quotations/Milestones/Invoices, and full Reports have no
-backend routes yet (Phase 2/3) and are intentionally not built here.
+Quotations/Milestones/Invoices and full Reports have no backend routes yet
+(Phase 3/4) and are intentionally not built here.

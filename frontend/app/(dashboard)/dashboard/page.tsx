@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { Card, CardBody } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { IconAttendance, IconChevronRight, IconPayments, IconProjects } from "@/components/ui/icons";
+import { IconAttendance, IconChevronRight, IconMaterials, IconPayments, IconProjects } from "@/components/ui/icons";
 import { PageSpinner } from "@/components/ui/spinner";
 import { StatCard } from "@/components/ui/stat-card";
 import { useAuth } from "@/lib/auth/context";
@@ -59,6 +59,13 @@ export default function DashboardPage() {
             tone="purple"
             icon={<IconPayments className="h-5 w-5" />}
           />
+          <StatCard
+            label="Material Spend"
+            value={formatCurrency(data.material_spend_total)}
+            hint="Stock-in cost + direct expenses"
+            tone="orange"
+            icon={<IconMaterials className="h-5 w-5" />}
+          />
         </div>
       )}
 
@@ -68,6 +75,9 @@ export default function DashboardPage() {
         )}
         {can("payments:read") && (
           <QuickLink href="/payments" title="Review payments due" description="Generate and mark weekly wages paid." icon={<IconPayments className="h-5 w-5" />} />
+        )}
+        {can("materials:read") && (
+          <QuickLink href="/materials" title="Track materials & stock" description="Record stock in/out/wastage and expenses." icon={<IconMaterials className="h-5 w-5" />} />
         )}
         {can("projects:read") && (
           <QuickLink href="/projects" title="View projects" description="See status across every active site." icon={<IconProjects className="h-5 w-5" />} />

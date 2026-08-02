@@ -4,6 +4,7 @@ export type ContractType = "fixed_price" | "cost_plus" | "other";
 export type AttendanceStatus = "present" | "absent" | "half_day";
 export type PaymentMode = "cash" | "bank_transfer" | "upi";
 export type PaymentStatus = "due" | "paid";
+export type StockMovementType = "in" | "out" | "wastage";
 
 export interface UserOut {
   id: number;
@@ -203,4 +204,111 @@ export interface DashboardSummary {
   todays_attendance: { present: number; absent: number; half_day: number };
   payments_due_this_week_total: number;
   payments_due_this_week_count: number;
+  material_spend_total: number;
+}
+
+export interface UnitOfMeasureOut {
+  id: number;
+  code: string;
+  label: string;
+}
+
+export interface UnitOfMeasureCreate {
+  code: string;
+  label: string;
+}
+
+export interface SupplierOut {
+  id: number;
+  name: string;
+  contact_person: string | null;
+  phone: string | null;
+  address: string | null;
+  notes: string | null;
+  is_active: boolean;
+}
+
+export interface SupplierCreate {
+  name: string;
+  contact_person?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  notes?: string | null;
+}
+
+export type SupplierUpdate = Partial<SupplierCreate> & { is_active?: boolean };
+
+export interface MaterialOut {
+  id: number;
+  name: string;
+  category: string | null;
+  unit_id: number | null;
+  default_supplier_id: number | null;
+  default_unit_price: number | null;
+  is_active: boolean;
+}
+
+export interface MaterialCreate {
+  name: string;
+  category?: string | null;
+  unit_id?: number | null;
+  default_supplier_id?: number | null;
+  default_unit_price?: number | null;
+}
+
+export type MaterialUpdate = Partial<MaterialCreate> & { is_active?: boolean };
+
+export interface StockMovementCreate {
+  material_id: number;
+  project_id: number;
+  type: StockMovementType;
+  quantity: number;
+  unit_price?: number | null;
+  total_cost?: number | null;
+  supplier_id?: number | null;
+  date: string;
+  note?: string | null;
+}
+
+export interface StockMovementOut {
+  id: number;
+  material_id: number;
+  project_id: number;
+  type: StockMovementType;
+  quantity: number;
+  unit_price: number | null;
+  total_cost: number | null;
+  supplier_id: number | null;
+  date: string;
+  note: string | null;
+}
+
+export interface MaterialStockBalanceOut {
+  material_id: number;
+  material_name: string;
+  unit_label: string | null;
+  project_id: number;
+  quantity_in: number;
+  quantity_out: number;
+  quantity_wastage: number;
+  current_stock: number;
+}
+
+export interface MaterialExpenseCreate {
+  project_id: number;
+  material_id?: number | null;
+  supplier_id?: number | null;
+  amount: number;
+  date: string;
+  note?: string | null;
+}
+
+export interface MaterialExpenseOut {
+  id: number;
+  project_id: number;
+  material_id: number | null;
+  supplier_id: number | null;
+  amount: number;
+  date: string;
+  note: string | null;
 }

@@ -140,6 +140,15 @@ export function IconRupee(props: IconProps) {
   );
 }
 
+export function IconMaterials(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M4 7.5L12 12l8-4.5M12 12v9" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function IconAlert(props: IconProps) {
   return (
     <svg {...base(props)}>
