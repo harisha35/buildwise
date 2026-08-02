@@ -7,7 +7,15 @@ from app.models.enums import (
     PaymentMode,
     PaymentStatus,
     ProjectStatus,
+    StockMovementType,
     UserRole,
+)
+from app.models.material import (
+    Material,
+    MaterialExpense,
+    MaterialStockMovement,
+    Supplier,
+    UnitOfMeasure,
 )
 from app.models.payment import (
     WorkerAdvance,
@@ -26,6 +34,9 @@ __all__ = [
     "AuditLog",
     "Base",
     "ContractType",
+    "Material",
+    "MaterialExpense",
+    "MaterialStockMovement",
     "PasswordResetToken",
     "PaymentMode",
     "PaymentStatus",
@@ -33,7 +44,10 @@ __all__ = [
     "ProjectStatus",
     "ProjectType",
     "ProjectWorkerAssignment",
+    "StockMovementType",
+    "Supplier",
     "SupervisorProjectAssignment",
+    "UnitOfMeasure",
     "User",
     "UserRole",
     "Worker",

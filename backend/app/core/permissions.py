@@ -32,6 +32,15 @@ CAPABILITIES: dict[str, tuple[UserRole, ...]] = {
     "advances:write": FINANCE_AND_SUPERVISOR,
     "ledger:read": FINANCE_AND_SUPERVISOR,
     "dashboard:read": ALL_ROLES,
+    "units:write": OWNER_CONTRACTOR,
+    "materials:read": FINANCE_AND_SUPERVISOR,
+    "materials:write": FINANCE_AND_SUPERVISOR,
+    "suppliers:read": FINANCE_AND_SUPERVISOR,
+    "suppliers:write": FINANCE_AND_SUPERVISOR,
+    "stock:read": FINANCE_AND_SUPERVISOR,
+    "stock:write": FINANCE_AND_SUPERVISOR,
+    "material_expenses:read": FINANCE_AND_SUPERVISOR,
+    "material_expenses:write": FINANCE_AND_SUPERVISOR,
 }
 
 

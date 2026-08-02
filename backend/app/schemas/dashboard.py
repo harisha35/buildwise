@@ -12,3 +12,4 @@ class DashboardSummary(BaseModel):
     todays_attendance: AttendanceSummary
     payments_due_this_week_total: float
     payments_due_this_week_count: int
+    material_spend_total: float
