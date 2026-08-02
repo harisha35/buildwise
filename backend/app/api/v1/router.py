@@ -4,9 +4,13 @@ from app.api.v1 import (
     attendance,
     auth,
     dashboard,
+    invoices,
     materials,
+    milestones,
     payments,
     projects,
+    quotations,
+    reports,
     uploads,
     users,
     workers,
@@ -28,3 +32,8 @@ api_router.include_router(materials.suppliers_router)
 api_router.include_router(materials.materials_router)
 api_router.include_router(materials.stock_router)
 api_router.include_router(materials.material_expenses_router)
+api_router.include_router(quotations.router)
+api_router.include_router(milestones.project_milestones_router)
+api_router.include_router(milestones.milestones_router)
+api_router.include_router(invoices.router)
+api_router.include_router(reports.router)

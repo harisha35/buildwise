@@ -1,0 +1,91 @@
+<style>
+  @page { size: A4; margin: 2.2cm 1.8cm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "DejaVu Sans", "Helvetica Neue", Arial, sans-serif;
+    color: #1f2937;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+  .doc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2px solid #1f2937;
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+  }
+  .doc-header h1 {
+    margin: 0;
+    font-size: 20pt;
+    letter-spacing: 1px;
+  }
+  .doc-header .meta {
+    text-align: right;
+    font-size: 10pt;
+    color: #4b5563;
+  }
+  .parties {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .parties .block { width: 48%; }
+  .parties .label {
+    text-transform: uppercase;
+    font-size: 8.5pt;
+    color: #6b7280;
+    margin-bottom: 4px;
+  }
+  table.items {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  table.items th {
+    text-align: left;
+    background: #f3f4f6;
+    padding: 8px 10px;
+    font-size: 9.5pt;
+    text-transform: uppercase;
+    color: #4b5563;
+    border-bottom: 1px solid #d1d5db;
+  }
+  table.items td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 10.5pt;
+  }
+  table.items td.num, table.items th.num { text-align: right; }
+  .totals {
+    width: 100%;
+    margin-bottom: 24px;
+  }
+  .totals table { margin-left: auto; width: 45%; border-collapse: collapse; }
+  .totals td { padding: 6px 10px; font-size: 10.5pt; }
+  .totals td.label { color: #4b5563; }
+  .totals td.value { text-align: right; }
+  .totals tr.total td { border-top: 2px solid #1f2937; font-weight: bold; font-size: 12pt; }
+  .status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 3px;
+    font-size: 9pt;
+    text-transform: uppercase;
+    background: #e5e7eb;
+    color: #1f2937;
+  }
+  .terms {
+    margin-top: 24px;
+    font-size: 9.5pt;
+    color: #4b5563;
+    white-space: pre-wrap;
+  }
+  .terms .label { text-transform: uppercase; font-size: 8.5pt; color: #6b7280; margin-bottom: 4px; }
+  .footer-note {
+    margin-top: 32px;
+    font-size: 8.5pt;
+    color: #9ca3af;
+    text-align: center;
+  }
+</style>

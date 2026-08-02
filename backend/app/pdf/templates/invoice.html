@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+{% include "_style.html" %}
+</head>
+<body>
+  <div class="doc-header">
+    <h1>Invoice</h1>
+    <div class="meta">
+      <div>Invoice #{{ invoice.id }}</div>
+      <div>Date: {{ invoice.invoice_date.strftime("%d %b %Y") }}</div>
+      {% if invoice.due_date %}
+      <div>Due: {{ invoice.due_date.strftime("%d %b %Y") }}</div>
+      {% endif %}
+      <div><span class="status-badge">{{ invoice.status.value.replace("_", " ") }}</span></div>
+    </div>
+  </div>
+
+  <div class="parties">
+    <div class="block">
+      <div class="label">Client</div>
+      <div>{{ invoice.client_name }}</div>
+    </div>
+    <div class="block">
+      <div class="label">Project</div>
+      <div>{{ project_name }}</div>
+      {% if milestone_names %}
+      <div class="label" style="margin-top:8px;">Milestones</div>
+      <div>{{ milestone_names|join(", ") }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <table class="items">
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th class="num">Qty</th>
+        <th class="num">Rate</th>
+        <th class="num">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in invoice.line_items %}
+      <tr>
+        <td>{{ item.description }}</td>
+        <td class="num">{{ "%.2f"|format(item.quantity) }}</td>
+        <td class="num">{{ "%.2f"|format(item.rate) }}</td>
+        <td class="num">{{ "%.2f"|format(item.amount) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="totals">
+    <table>
+      <tr>
+        <td class="label">Total Invoiced</td>
+        <td class="value">{{ "%.2f"|format(invoice.total_amount) }}</td>
+      </tr>
+      <tr>
+        <td class="label">Received</td>
+        <td class="value">{{ "%.2f"|format(invoice.amount_received) }}</td>
+      </tr>
+      <tr class="total">
+        <td class="label">Balance Due</td>
+        <td class="value">{{ "%.2f"|format(invoice.amount_outstanding) }}</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="footer-note">This is a system-generated invoice.</div>
+</body>
+</html>
